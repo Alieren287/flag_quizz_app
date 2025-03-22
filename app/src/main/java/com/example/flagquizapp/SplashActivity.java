@@ -12,16 +12,21 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        Button startButton = findViewById(R.id.startButton);
-        startButton.setOnClickListener(v -> {
-            try {
-                Intent intent = new Intent(SplashActivity.this, MainActivity.class);
-                startActivity(intent);
-                finish(); // Close splash activity
-            } catch (Exception e) {
-                e.printStackTrace();
-                // You might want to show an error message to the user here
-            }
+        Button startFullQuizButton = findViewById(R.id.startFullQuizButton);
+        Button startQuickQuizButton = findViewById(R.id.startQuickQuizButton);
+
+        startFullQuizButton.setOnClickListener(v -> {
+            Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+            intent.putExtra("isQuickQuiz", false);
+            startActivity(intent);
+            finish();
+        });
+
+        startQuickQuizButton.setOnClickListener(v -> {
+            Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+            intent.putExtra("isQuickQuiz", true);
+            startActivity(intent);
+            finish();
         });
     }
 } 

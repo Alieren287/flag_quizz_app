@@ -1,5 +1,6 @@
 package com.example.flagquizapp;
 
+import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.widget.Button;
@@ -10,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
@@ -23,12 +25,15 @@ public class MainActivity extends AppCompatActivity {
     private Flag currentFlag;
     private int correctAnswers = 0;
     private int totalAsked = 0;
+    private boolean isQuickQuiz;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        isQuickQuiz = getIntent().getBooleanExtra("isQuickQuiz", false);
+        
         // Initialize views
         flagImageView = findViewById(R.id.flagImageView);
         option1Button = findViewById(R.id.button1);
@@ -60,13 +65,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startNewGame() {
-        // Reset scores
         correctAnswers = 0;
         totalAsked = 0;
         
-        // Create a new copy of all flags for this game
         remainingFlags = new ArrayList<>(allFlags);
         Collections.shuffle(remainingFlags);
+        
+        // If quick quiz, only keep 10 flags
+        if (isQuickQuiz) {
+            remainingFlags = remainingFlags.subList(0, 10);
+        }
         
         nextQuestion();
     }
@@ -120,8 +128,8 @@ public class MainActivity extends AppCompatActivity {
             String word = words[i];
             if (!word.isEmpty() && !word.equals("and")) {
                 // Capitalize first letter and append rest of the word
-                formattedName.append(word.substring(0, 1).toUpperCase())
-                        .append(word.substring(1).toLowerCase());
+                formattedName.append(word.substring(0, 1).toUpperCase(Locale.ENGLISH))
+                        .append(word.substring(1).toLowerCase(Locale.ENGLISH));
 
                 // Add space if not the last word
                 if (i < words.length - 1) {
@@ -134,22 +142,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showGameCompleteDialog() {
-        new AlertDialog.Builder(this)
-            .setTitle(R.string.game_complete_title)
-            .setMessage(getString(R.string.game_complete_message, correctAnswers, totalAsked))
-            .setCancelable(false)
-            .setPositiveButton(R.string.play_again, (dialog, which) -> {
-                startNewGame();
-            })
-            .setNegativeButton(R.string.exit, (dialog, which) -> {
-                finish();
-            })
-            .show();
+        Intent intent = new Intent(this, FinishActivity.class);
+        intent.putExtra("score", correctAnswers);
+        intent.putExtra("total", totalAsked);
+        intent.putExtra("isQuickQuiz", isQuickQuiz);
+        startActivity(intent);
+        finish();
     }
 
     private void checkAnswer(String selectedAnswer) {
         if (selectedAnswer.equals(currentFlag.getName())) {
-            resultTextView.setText(getString(R.string.correct_answer, correctAnswers++, totalAsked));
+            resultTextView.setText(getString(R.string.correct_answer, ++correctAnswers, totalAsked));
         } else {
             resultTextView.setText(getString(R.string.wrong_answer, currentFlag.getName()));
         }
